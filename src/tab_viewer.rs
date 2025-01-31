@@ -4,6 +4,7 @@ use egui::{Ui, WidgetText};
 pub trait TabUi {
     fn title(&self) -> WidgetText;
     fn ui(&mut self, ui: &mut Ui, cx: &mut Context);
+    fn is_closeable(&self) -> bool;
 }
 
 // pub struct AppTabViewer<'a, 'b> {

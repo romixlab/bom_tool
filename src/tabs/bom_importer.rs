@@ -42,4 +42,8 @@ impl TabUi for TabBomImporter {
     fn ui(&mut self, ui: &mut Ui, _cx: &mut Context) {
         self.inner.tabular_importer.show(ui);
     }
+
+    fn is_closeable(&self) -> bool {
+        false
+    }
 }

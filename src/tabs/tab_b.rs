@@ -17,4 +17,8 @@ impl TabUi for TabB {
             info!("Button in TabB");
         }
     }
+
+    fn is_closeable(&self) -> bool {
+        false
+    }
 }

@@ -67,6 +67,13 @@ impl Tab {
         }
     }
 
+    fn is_closeable(&self) -> bool {
+        match &self.kind {
+            TabKind::TabBomImporter(t) => t.is_closeable(),
+            TabKind::TabB(t) => t.is_closeable(),
+        }
+    }
+
     // pub fn add_popup(to: &mut Vec<Tab>, surface: SurfaceIndex, node: NodeIndex, ui: &mut egui::Ui) {
     //     for tab_kind in TabKindDiscriminants::iter() {
     //         // Skip log viewer as it needs context to function properly, open through Window -> Log Viewer menu
@@ -184,8 +191,15 @@ impl egui_tiles::Behavior<Tab> for TreeBehavior {
         }
     }
 
-    fn is_tab_closable(&self, _tiles: &Tiles<Tab>, _tile_id: TileId) -> bool {
-        true
+    fn is_tab_closable(&self, tiles: &Tiles<Tab>, tile_id: TileId) -> bool {
+        if let Some(tile) = tiles.get(tile_id) {
+            match tile {
+                Tile::Pane(tab) => tab.is_closeable(),
+                Tile::Container(_) => false,
+            }
+        } else {
+            true
+        }
     }
 
     // ---

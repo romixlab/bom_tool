@@ -1,5 +1,5 @@
+use crate::prelude::*;
 use crate::tabs::Tab;
-use tracing::debug;
 
 pub(crate) fn tree_ui(
     ui: &mut egui::Ui,

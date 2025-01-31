@@ -14,7 +14,7 @@ impl TabUi for TabA {
         ui.text_edit_singleline(&mut self.s);
 
         if ui.button("Log").clicked() {
-            tracing::info!("Button in TabA");
+            info!("Button in TabA");
         }
     }
 }

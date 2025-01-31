@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::prelude::*;
 use crate::tab_viewer::TabUi;
 use egui::{Rect, Vec2, WidgetText};
 use egui_tiles::{Tile, TileId, Tiles, UiResponse};
@@ -180,19 +181,16 @@ impl egui_tiles::Behavior<Tab> for TreeBehavior {
                 Tile::Pane(pane) => {
                     // Single pane removal
                     let tab_title = self.tab_title_for_pane(pane);
-                    tracing::debug!("Closing tab: {}, tile ID: {tile_id:?}", tab_title.text());
+                    debug!("Closing tab: {}, tile ID: {tile_id:?}", tab_title.text());
                 }
                 Tile::Container(container) => {
                     // Container removal
-                    tracing::debug!("Closing container: {:?}", container.kind());
+                    debug!("Closing container: {:?}", container.kind());
                     let children_ids = container.children();
                     for child_id in children_ids {
                         if let Some(Tile::Pane(pane)) = tiles.get(*child_id) {
                             let tab_title = self.tab_title_for_pane(pane);
-                            tracing::debug!(
-                                "Closing tab: {}, tile ID: {tile_id:?}",
-                                tab_title.text()
-                            );
+                            debug!("Closing tab: {}, tile ID: {tile_id:?}", tab_title.text());
                         }
                     }
                 }

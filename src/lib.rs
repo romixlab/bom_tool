@@ -8,4 +8,4 @@ mod tab_viewer;
 mod tabs;
 mod windows;
 
-pub use app::TemplateApp;
+pub use app::BomToolApp;

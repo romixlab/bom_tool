@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::prelude::*;
 // use crate::tab_viewer::AppTabViewer;
 use crate::tabs::{Tab, TreeBehavior};
 use crate::windows::{UniqueWindows, WindowKind, WindowToggleButtonsLocations};
@@ -7,14 +8,10 @@ use egui_modal::Modal;
 use egui_tracing::EventCollector;
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
-use tokio::sync::oneshot;
-use tracing::debug;
 
-pub struct TemplateApp {
+pub struct BomToolApp {
     cx: Context,
     state: State,
-    // log_viewer: crate::tabs::log_viewer::LogViewer,
-    shutdown_event_tx: Option<oneshot::Sender<()>>,
     shutdown_modal: Modal,
     shutdown_confirmed: bool,
 }
@@ -72,13 +69,12 @@ impl Default for State {
     }
 }
 
-impl TemplateApp {
+impl BomToolApp {
     /// Called once before the first frame.
     pub fn new(
         cc: &eframe::CreationContext<'_>,
         cx: Context,
-        event_collector: EventCollector,
-        shutdown_event_tx: oneshot::Sender<()>,
+        #[cfg(not(target_arch = "wasm32"))] event_collector: EventCollector,
     ) -> Self {
         // Load previous app state (if any).
         let mut state = if let Some(storage) = cc.storage {
@@ -94,6 +90,7 @@ impl TemplateApp {
 
         // Restore contexts for windows
         for (window, _) in &mut state.windows.windows {
+            #[cfg(not(target_arch = "wasm32"))]
             if let WindowKind::LogViewer(log_viewer) = window {
                 log_viewer.set_collector(event_collector);
                 break;
@@ -103,11 +100,10 @@ impl TemplateApp {
         // Restore context for tabs
         state.tabs_behavior.feed_cx(cx.clone());
 
-        TemplateApp {
+        BomToolApp {
             cx,
             state,
             // log_viewer,
-            shutdown_event_tx: Some(shutdown_event_tx),
             shutdown_modal: Modal::new(&cc.egui_ctx, "shutdown_modal"),
             shutdown_confirmed: false,
         }
@@ -206,7 +202,7 @@ impl TemplateApp {
     }
 }
 
-impl eframe::App for TemplateApp {
+impl eframe::App for BomToolApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
@@ -265,9 +261,9 @@ impl eframe::App for TemplateApp {
 
     // fn on_exit(&mut self) {
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
-        if let Some(tx) = self.shutdown_event_tx.take() {
-            _ = tx.send(());
-        }
+        // if let Some(tx) = self.shutdown_event_tx.take() {
+        //     _ = tx.send(());
+        // }
     }
 
     fn clear_color(&self, visuals: &egui::Visuals) -> [f32; 4] {
@@ -275,52 +271,4 @@ impl eframe::App for TemplateApp {
     }
 }
 
-impl State {
-    // fn new_tab_default(&mut self, kind: TabKindDiscriminants) {
-    //     let tab = kind.create_tab(SurfaceIndex::main(), NodeIndex(self.tab_counter));
-    //     self.add_tab(tab);
-    // }
-    //
-    // fn new_tab(&mut self, kind: TabKind) {
-    //     let tab = Tab {
-    //         surface: SurfaceIndex::main(),
-    //         node: NodeIndex(self.tab_counter),
-    //         kind,
-    //     };
-    //     self.add_tab(tab);
-    // }
-    //
-    // fn add_tab(&mut self, tab: Tab) {
-    //     self.tab_counter += 1;
-    //     let new_surface_idx = self.dock_state.add_window(vec![tab]);
-    //     for ((surface_idx, _node_idx), tab) in self.dock_state.iter_all_tabs_mut() {
-    //         if surface_idx == new_surface_idx {
-    //             tab.surface = new_surface_idx;
-    //         }
-    //     }
-    // }
-    //
-    // /// Focus on a first found tab with specified kind.
-    // /// Returns false if no such tab were found.
-    // fn focus_on_tab(&mut self, tab_kind: TabKindDiscriminants) -> bool {
-    //     let mut surface_node_tab = None;
-    //     for (surface_index, surface) in self.dock_state.iter_surfaces().enumerate() {
-    //         for (tab_index, (node, tab)) in surface.iter_all_tabs().enumerate() {
-    //             if TabKindDiscriminants::from(&tab.kind) == tab_kind {
-    //                 surface_node_tab = Some((
-    //                     SurfaceIndex(surface_index),
-    //                     node,
-    //                     egui_dock::TabIndex(tab_index),
-    //                 ));
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     if let Some(surface_node_tab) = surface_node_tab {
-    //         self.dock_state.set_active_tab(surface_node_tab);
-    //         true
-    //     } else {
-    //         false
-    //     }
-    // }
-}
+impl State {}

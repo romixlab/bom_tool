@@ -14,7 +14,7 @@ impl TabUi for TabB {
         ui.add(egui::Slider::new(&mut self.a, 0.0..=10.0));
 
         if ui.button("Log").clicked() {
-            tracing::info!("Button in TabB");
+            info!("Button in TabB");
         }
     }
 }

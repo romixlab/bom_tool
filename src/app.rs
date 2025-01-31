@@ -1,7 +1,6 @@
 use crate::context::Context;
 use crate::prelude::*;
-// use crate::tab_viewer::AppTabViewer;
-use crate::tabs::{Tab, TreeBehavior};
+use crate::tabs::{Tab, TabKindDiscriminants, TreeBehavior};
 use crate::windows::{UniqueWindows, WindowKind, WindowToggleButtonsLocations};
 use egui::{CentralPanel, ScrollArea, SidePanel, TopBottomPanel, Ui};
 use egui_modal::Modal;
@@ -28,33 +27,18 @@ struct State {
 impl Default for State {
     fn default() -> Self {
         let mut next_view_nr = 0;
-        let mut gen_view = || {
-            let view = Tab::tab_b(next_view_nr);
+        let mut gen_view = |kind: TabKindDiscriminants| {
+            let view = Tab::from_kind(kind, next_view_nr);
             next_view_nr += 1;
             view
         };
 
         let mut tiles = egui_tiles::Tiles::default();
-
         let mut tabs = vec![];
-        let tab_tile = {
-            let children = (0..7).map(|_| tiles.insert_pane(gen_view())).collect();
-            tiles.insert_tab_tile(children)
-        };
-        tabs.push(tab_tile);
-        tabs.push({
-            let children = (0..7).map(|_| tiles.insert_pane(gen_view())).collect();
-            tiles.insert_horizontal_tile(children)
-        });
-        tabs.push({
-            let children = (0..7).map(|_| tiles.insert_pane(gen_view())).collect();
-            tiles.insert_vertical_tile(children)
-        });
-        tabs.push({
-            let cells = (0..11).map(|_| tiles.insert_pane(gen_view())).collect();
-            tiles.insert_grid_tile(cells)
-        });
-        tabs.push(tiles.insert_pane(gen_view()));
+
+        tabs.push(tiles.insert_pane(gen_view(TabKindDiscriminants::TabBomImporter)));
+        tabs.push(tiles.insert_pane(gen_view(TabKindDiscriminants::TabBomImporter)));
+        tabs.push(tiles.insert_pane(gen_view(TabKindDiscriminants::TabB)));
 
         let root = tiles.insert_tab_tile(tabs);
 
@@ -130,17 +114,6 @@ impl BomToolApp {
             }
         });
         ui.menu_button("Window", |ui| {
-            // if ui.button("Log Viewer").clicked() {
-            //     // if !self.state.focus_on_tab(TabKindDiscriminants::LogViewer) {
-            //     //     self.state
-            //     //         .new_tab(TabKind::LogViewer(self.log_viewer.clone()));
-            //     // }
-            //     ui.close_menu();
-            // }
-            // if ui.button("Tab A").clicked() {
-            //     // self.state.new_tab_default(TabKindDiscriminants::TabA);
-            //     ui.close_menu();
-            // }
             let is_clicked = self
                 .state
                 .windows
@@ -150,10 +123,18 @@ impl BomToolApp {
             }
         });
         ui.menu_button("Help", |ui| {
-            let is_clicked = self
+            let mut is_clicked = self
                 .state
                 .windows
                 .toggle_buttons(WindowToggleButtonsLocations::Help, ui);
+            if ui.button("Reset mem").clicked() {
+                ui.ctx().memory_mut(|memory| {
+                    *memory = Default::default();
+                });
+                self.state = State::default();
+                self.state.tabs_behavior.feed_cx(self.cx.clone());
+                is_clicked = true;
+            }
             if is_clicked {
                 ui.close_menu();
             }

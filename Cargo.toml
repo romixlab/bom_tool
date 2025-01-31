@@ -27,6 +27,8 @@ serde = { version = "1", features = ["derive"] }
 strum = { version = "0.26", features = ["derive"] }
 #tokio = { version = "1.39", features = ["full", "sync"] }
 
+egui_tabular = { path = "../egui_tabular" }
+
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tracing = "0.1"

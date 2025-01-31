@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Formatter};
 use strum::{AsRefStr, EnumDiscriminants, EnumIter};
 
-mod tab_a;
+mod bom_importer;
 mod tab_b;
 
 #[derive(Serialize, Deserialize, EnumDiscriminants)]
 #[strum_discriminants(derive(Serialize, Deserialize, EnumIter, AsRefStr))]
 pub enum TabKind {
-    TabA(tab_a::TabA),
+    TabBomImporter(bom_importer::TabBomImporter),
     TabB(tab_b::TabB),
 }
 
@@ -50,7 +50,7 @@ impl Tab {
             .on_hover_cursor(egui::CursorIcon::Grab)
             .dragged();
         match &mut self.kind {
-            TabKind::TabA(t) => t.ui(ui, cx),
+            TabKind::TabBomImporter(t) => t.ui(ui, cx),
             TabKind::TabB(t) => t.ui(ui, cx),
         }
         if dragged {
@@ -62,7 +62,7 @@ impl Tab {
 
     pub fn title(&self) -> WidgetText {
         match &self.kind {
-            TabKind::TabA(t) => t.title(),
+            TabKind::TabBomImporter(t) => t.title(),
             TabKind::TabB(t) => t.title(),
         }
     }
@@ -83,11 +83,21 @@ impl Tab {
     //     vec![Tab::tab_a(SurfaceIndex::main(), NodeIndex(1))]
     // }
 
-    pub fn tab_b(nr: usize) -> Self {
-        Tab {
-            kind: TabKind::TabA(tab_a::TabA::default()),
-            nr,
-        }
+    // pub fn tab_b(nr: usize) -> Self {
+    //     Tab {
+    //         kind: TabKind::TabBomImporter(bom_importer::TabBomImporter::default()),
+    //         nr,
+    //     }
+    // }
+
+    pub fn from_kind(kind: TabKindDiscriminants, nr: usize) -> Self {
+        let kind = match kind {
+            TabKindDiscriminants::TabBomImporter => {
+                TabKind::TabBomImporter(bom_importer::TabBomImporter::default())
+            }
+            TabKindDiscriminants::TabB => TabKind::TabB(tab_b::TabB::default()),
+        };
+        Tab { kind, nr }
     }
 }
 

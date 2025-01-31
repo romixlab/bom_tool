@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Formatter};
 use strum::{AsRefStr, EnumDiscriminants, EnumIter};
 
-mod bom_importer;
-mod tab_b;
+pub mod bom_importer;
+pub mod tab_b;
 
 #[derive(Serialize, Deserialize, EnumDiscriminants)]
 #[strum_discriminants(derive(Serialize, Deserialize, EnumIter, AsRefStr))]
@@ -78,10 +78,6 @@ impl Tab {
     //         }
     //     }
     // }
-    //
-    // pub fn default_tabs() -> Vec<Tab> {
-    //     vec![Tab::tab_a(SurfaceIndex::main(), NodeIndex(1))]
-    // }
 
     // pub fn tab_b(nr: usize) -> Self {
     //     Tab {
@@ -90,15 +86,15 @@ impl Tab {
     //     }
     // }
 
-    pub fn from_kind(kind: TabKindDiscriminants, nr: usize) -> Self {
-        let kind = match kind {
-            TabKindDiscriminants::TabBomImporter => {
-                TabKind::TabBomImporter(bom_importer::TabBomImporter::default())
-            }
-            TabKindDiscriminants::TabB => TabKind::TabB(tab_b::TabB::default()),
-        };
-        Tab { kind, nr }
-    }
+    // pub fn from_kind(kind: TabKindDiscriminants, nr: usize) -> Self {
+    //     let kind = match kind {
+    //         TabKindDiscriminants::TabBomImporter => {
+    //             TabKind::TabBomImporter(bom_importer::TabBomImporter::default())
+    //         }
+    //         TabKindDiscriminants::TabB => TabKind::TabB(tab_b::TabB::default()),
+    //     };
+    //     Tab { kind, nr }
+    // }
 }
 
 pub struct TreeBehavior {
@@ -107,6 +103,7 @@ pub struct TreeBehavior {
     gap_width: f32,
     pub(crate) add_child_to: Option<TileId>,
     cx: Option<Context>,
+    show_view_numbers: bool,
 }
 
 impl Default for TreeBehavior {
@@ -117,6 +114,7 @@ impl Default for TreeBehavior {
             gap_width: 2.0,
             add_child_to: None,
             cx: None,
+            show_view_numbers: false,
         }
     }
 }
@@ -129,6 +127,7 @@ impl TreeBehavior {
             gap_width,
             add_child_to: _,
             cx: _,
+            show_view_numbers: _,
         } = self;
 
         egui::Grid::new("behavior_ui")
@@ -156,6 +155,10 @@ impl TreeBehavior {
                 ui.label("Gap width:");
                 ui.add(egui::DragValue::new(gap_width).range(0.0..=20.0).speed(1.0));
                 ui.end_row();
+
+                ui.label("Show view numbers:");
+                ui.checkbox(&mut self.show_view_numbers, "");
+                ui.end_row();
             });
     }
 
@@ -174,8 +177,11 @@ impl egui_tiles::Behavior<Tab> for TreeBehavior {
     }
 
     fn tab_title_for_pane(&mut self, view: &Tab) -> WidgetText {
-        // format!("View {}", view.nr).into()
-        view.title()
+        if self.show_view_numbers {
+            format!("{}: {}", view.nr, view.title().text()).into()
+        } else {
+            view.title()
+        }
     }
 
     fn is_tab_closable(&self, _tiles: &Tiles<Tab>, _tile_id: TileId) -> bool {

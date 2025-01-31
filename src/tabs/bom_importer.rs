@@ -4,6 +4,7 @@ use egui_tabular::{RequiredColumn, RequiredColumns, TabularImporter};
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct TabBomImporter {
+    bom_instance: char,
     #[serde(skip)]
     inner: Inner,
 }
@@ -24,9 +25,18 @@ impl Default for Inner {
     }
 }
 
+impl TabBomImporter {
+    pub fn new(bom_instance: char) -> Self {
+        Self {
+            bom_instance,
+            inner: Inner::default(),
+        }
+    }
+}
+
 impl TabUi for TabBomImporter {
     fn title(&self) -> WidgetText {
-        "BOM".into()
+        format!("BOM {}", self.bom_instance).into()
     }
 
     fn ui(&mut self, ui: &mut Ui, _cx: &mut Context) {

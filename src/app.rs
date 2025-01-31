@@ -1,6 +1,8 @@
 use crate::context::Context;
 use crate::prelude::*;
-use crate::tabs::{Tab, TabKindDiscriminants, TreeBehavior};
+use crate::tabs::bom_importer::TabBomImporter;
+use crate::tabs::tab_b::TabB;
+use crate::tabs::{Tab, TabKind, TreeBehavior};
 use crate::windows::{UniqueWindows, WindowKind, WindowToggleButtonsLocations};
 use egui::{CentralPanel, ScrollArea, SidePanel, TopBottomPanel, Ui};
 use egui_modal::Modal;
@@ -27,8 +29,11 @@ struct State {
 impl Default for State {
     fn default() -> Self {
         let mut next_view_nr = 0;
-        let mut gen_view = |kind: TabKindDiscriminants| {
-            let view = Tab::from_kind(kind, next_view_nr);
+        let mut gen_view = |kind: TabKind| {
+            let view = Tab {
+                kind,
+                nr: next_view_nr,
+            };
             next_view_nr += 1;
             view
         };
@@ -36,9 +41,9 @@ impl Default for State {
         let mut tiles = egui_tiles::Tiles::default();
         let mut tabs = vec![];
 
-        tabs.push(tiles.insert_pane(gen_view(TabKindDiscriminants::TabBomImporter)));
-        tabs.push(tiles.insert_pane(gen_view(TabKindDiscriminants::TabBomImporter)));
-        tabs.push(tiles.insert_pane(gen_view(TabKindDiscriminants::TabB)));
+        tabs.push(tiles.insert_pane(gen_view(TabKind::TabBomImporter(TabBomImporter::new('A')))));
+        tabs.push(tiles.insert_pane(gen_view(TabKind::TabBomImporter(TabBomImporter::new('B')))));
+        tabs.push(tiles.insert_pane(gen_view(TabKind::TabB(TabB::default()))));
 
         let root = tiles.insert_tab_tile(tabs);
 
@@ -62,8 +67,12 @@ impl BomToolApp {
     ) -> Self {
         // Load previous app state (if any).
         let mut state = if let Some(storage) = cc.storage {
-            eframe::get_value(storage, eframe::APP_KEY).unwrap_or(State::default())
+            eframe::get_value(storage, eframe::APP_KEY).unwrap_or_else(|| {
+                info!("Default state created, because deserializing failed");
+                State::default()
+            })
         } else {
+            info!("Default state created, because persistence is disabled");
             State::default()
         };
 
